@@ -23,6 +23,7 @@ namespace eval OrcaViewer:: {
   variable orbitalsInTable 0
   variable lowestOrbitalIndex 0
   variable reps {}
+  variable orbSpan 10
 }
 
 #
@@ -32,6 +33,7 @@ proc OrcaViewer::orcaviewer {} {
   variable w
   variable orcaFile
   variable fileLoaded
+  variable ::OrcaViewer::orbSpan
 
   # If already initialized, just turn on
   if { [winfo exists .orcaviewer] } {
@@ -97,6 +99,11 @@ proc OrcaViewer::orcaviewer {} {
   # pack $w.txt.label
   # pack $w.txt.text $w.txt.vscr -side left -fill y
   pack $w.menubar $w.main -side top -expand 1
+  entry $w.span -textvariable ::OrcaViewer::orbSpan -width 10
+  bind $w.span <Return> { OrcaViewer::fillOrblist }
+  label $w.spanLabel -text "Orbitals around HOMO: "
+  pack $w.main $w.span -expand 1 -side bottom
+  pack $w.spanLabel $w.span -expand 1 -side right
 }
 
 proc OrcaViewer::updateOrbitals {row col} \
@@ -123,8 +130,8 @@ proc OrcaViewer::updateOrbitals {row col} \
   } elseif {[llength $orbitals] && [llength $reps]} {
     set idx1 [mol repindex $orcaMol [lindex $reps 0]]
     set idx2 [mol repindex $orcaMol [lindex $reps 1]]
-    mol modstyle $idx1 0 Orbital 0.050000 $orb 0 0 0.125 1 0 0 0 1
-    mol modstyle $idx2 0 Orbital -0.050000 $orb 0 0 0.125 1 0 0 0 1
+    mol modstyle $idx1 $orcaMol Orbital 0.050000 $orb 0 0 0.125 1 0 0 0 1
+    mol modstyle $idx2 $orcaMol Orbital -0.050000 $orb 0 0 0.125 1 0 0 0 1
   }
 
 }
@@ -159,6 +166,7 @@ proc OrcaViewer::fillOrblist { } \
   variable orbitals
   variable orbitalsInTable
   variable lowestOrbitalIndex
+  variable ::OrcaViewer::orbSpan
   global vmd_frame
 
   puts $orbitalsInTable
@@ -169,11 +177,17 @@ proc OrcaViewer::fillOrblist { } \
   set norbs [llength $energies]
   #puts "norbs: $norbs"
   set homo [molinfo $orcaMol get homo]
-  set span 5
 
   set orbitalsInTable 0
-  set lowestOrbitalIndex [expr $homo - $span]
-  for {set i [expr $homo - $span]} {$i < [expr $homo + $span]} {incr i} {
+  set lowestOrbitalIndex [expr $homo - $::OrcaViewer::orbSpan]
+  if {$lowestOrbitalIndex < 0} {
+    set lowestOrbitalIndex 0
+  }
+  set limit [expr $homo + $::OrcaViewer::orbSpan]
+  if {$limit > $norbs} {
+    set limit [expr $norbs - 1]
+  }
+  for {set i $lowestOrbitalIndex} {$i <= $limit} {incr i} {
     lappend orbitals [list $i [OrcaViewer::getOrbitalDescr $i $homo] [lindex $energies $i]]
     incr orbitalsInTable
   }
@@ -224,11 +238,20 @@ proc OrcaViewer::cleanUp { } \
   variable orcaFile
   variable fileLoaded
   variable orcaMol
+  variable orbitalsInTable
+  variable reps
+  variable orbitals
+  variable lowestOrbitalIndex
 
   mol delete $orcaMol
+  $w.main delete 0 $orbitalsInTable
   set fileLoaded 0
   set orcaMol ""
   set orcaFile ""
+  set reps {}
+  set orbitals {}
+  set orbitalsInTable 0
+  set lowestOrbitalIndex 0
 }
 
 proc orcaviewer_tk {} {
