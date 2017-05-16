@@ -115,7 +115,7 @@ proc OrcaViewer::updateOrbitals {row col} \
   set orb [expr $row+$lowestOrbitalIndex+1]
 
   if {[llength $orbitals] && ![llength $reps]} {
-    puts "update orbital $row"
+    #puts "update orbital $row"
     puts [lindex $orbitals [expr $row]]
     mol color ColorID 0
     mol representation Orbital 0.050000 $orb 0 0 0.125 1 0 0 0 1
@@ -154,13 +154,11 @@ proc OrcaViewer::getOrbitalDescr {index hindex} \
 }
 
 proc updateFrame { name element op } {
-  puts "updating frame"
   OrcaViewer::fillOrblist
 }
 
 proc OrcaViewer::fillOrblist { } \
 {
-  puts "filling orbital list"
   variable w
   variable orcaMol
   variable orbitals
@@ -258,7 +256,6 @@ proc orcaviewer_tk {} {
   OrcaViewer::orcaviewer
   return $OrcaViewer::w
 }
-
 
 vmd_install_extension orcaviewer orcaviewer_tk "Visualization/Orca"
 orcaviewer_tk
