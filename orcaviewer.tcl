@@ -196,7 +196,7 @@ proc OrcaViewer::loadFile { } {
   }
 
   set orcaFile [tk_getOpenFile -filetypes $file_types \
-                -initialdir "/mnt/workspace/qmmm/test_plugin/tyr_test/run" \
+                -initialdir pwd \
                 -defaultextension .txt]
 
   set rc [ catch { set fd [open $orcaFile "r"] } ]
