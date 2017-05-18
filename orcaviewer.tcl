@@ -153,6 +153,24 @@ proc OrcaViewer::getOrbitalDescr {index hindex} \
 
 }
 
+proc OrcaViewer::assignPCtoUserField { method } {
+  variable orcaMol
+  set nf [molinfo $orcaMol get numframes]
+  set sel [atomselect $orcaMol all]
+  for {set i 0} {$i < $nf} {incr i} {
+    $sel frame $i
+    animate goto $i
+    set qmcharges [molinfo $orcaMol get qmcharges]
+    foreach var $qmcharges {
+      if {[lindex $var 0 0] == $method} {
+        $sel set user [lindex $var 0 1]
+        break
+      }
+    }
+  }
+  $sel delete
+}
+
 proc updateFrame { name element op } {
   OrcaViewer::fillOrblist
 }
@@ -167,7 +185,7 @@ proc OrcaViewer::fillOrblist { } \
   variable ::OrcaViewer::orbSpan
   global vmd_frame
 
-  puts $orbitalsInTable
+  #puts $orbitalsInTable
   $w.main delete 0 $orbitalsInTable
   set orbitals {}
 
@@ -225,6 +243,8 @@ proc OrcaViewer::loadFile { } {
   #OrcaViewer::fillOrblist
 
   enabletrace
+  OrcaViewer::assignPCtoUserField "Mulliken"
+  color scale method BWR
   animate goto 0
 
   close $fd
